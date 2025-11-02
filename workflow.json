@@ -1,0 +1,342 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.researchData }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        -400
+      ],
+      "id": "45f788d7-4bb2-46e8-ba3f-d20521546f23",
+      "name": "AI Research Analyzer"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1m34o6T9cCfEV-gv5ZF9AD0ik-GvB7kEnxjiQv4i61so",
+          "mode": "list",
+          "cachedResultName": "WhatsApp Messages Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1m34o6T9cCfEV-gv5ZF9AD0ik-GvB7kEnxjiQv4i61so/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 275358397,
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": " https://docs.google.com/spreadsheets/d/1m34o6T9cCfEV-gv5ZF9AD0ik-GvB7kEnxjiQv4i61so/edit#gid=275358397"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{new Date().toISOString()}}",
+            "date": "={{new Date().toLocaleDateString()}}",
+            "from": "AI Research Monitor",
+            "sender_name": "Research Bot",
+            "message": "={{$json.output}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sender_name",
+              "displayName": "sender_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "215c40f7-2e87-4b61-ae85-32b0a6cefa25",
+      "name": "Add to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        928,
+        -400
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "gq2fEkA39Egv0Z1A",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.title}}",
+              "operation": "notContains",
+              "value2": "senior"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f19db3d9-ff11-4423-85d0-39fab64c4a52",
+      "name": "Filter Non-Senior Research",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        400,
+        -400
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {},
+      "id": "ac101647-ac92-45b9-85e8-c1278dc6ee55",
+      "name": "Merge Research Data",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        192,
+        -400
+      ],
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "e18f1fbe-c76e-40a2-a1a2-478094810ad2",
+      "name": "XML→JSON",
+      "type": "n8n-nodes-base.xml",
+      "position": [
+        0,
+        -400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://hnrss.org/newest?q=ai+research&count=5",
+        "options": {}
+      },
+      "id": "f05cbaa2-b3ed-479b-bbaf-8c7044a12fab",
+      "name": "Hacker News RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -208,
+        -304
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "url": "http://export.arxiv.org/api/query?search_query=cat:cs.AI&max_results=5&sortBy=submittedDate",
+        "options": {}
+      },
+      "id": "0db096db-cef1-4584-bf31-dda2e6983185",
+      "name": "ArXiv RSS",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        -208,
+        -512
+      ],
+      "typeVersion": 4.2
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format research data for AI analysis\nconst entries = $input.all();\nlet researchData = \"Latest AI Research Summary:\\n\\n\";\n\nentries.forEach((entry, index) => {\n  if (entry.feed && entry.feed.entry) {\n    const papers = Array.isArray(entry.feed.entry) ? entry.feed.entry : [entry.feed.entry];\n    \n    papers.forEach((paper, paperIndex) => {\n      if (paper.title && paper.summary) {\n        researchData += `Research ${index + paperIndex + 1}:\\n`;\n        researchData += `Title: ${paper.title}\\n`;\n        researchData += `Summary: ${paper.summary.substring(0, 300)}...\\n`;\n        researchData += `Published: ${paper.published || paper.updated || 'N/A'}\\n`;\n        researchData += `Link: ${paper.id || 'N/A'}\\n\\n`;\n      }\n    });\n  }\n});\n\n// If no research data was found, provide a default message\nif (researchData === \"Latest AI Research Summary:\\n\\n\") {\n  researchData += \"No new AI research papers found in the RSS feeds today.\\n\";\n  researchData += \"Please check the RSS feed sources or try again later.\";\n}\n\nreturn [{\n  json: {\n    researchData: researchData,\n    totalEntries: entries.length,\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "f2219d43-0c51-4606-b998-b7f7e2e1800b",
+      "name": "Format Research Data",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        592,
+        -48
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "model": "llama-3.1-8b-instant",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        512,
+        352
+      ],
+      "id": "e07e2bd1-f7d5-4e49-9178-7fe51b969a15",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "uiiIeeXvCVQZAidb",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        96
+      ],
+      "id": "d8acb5ef-c575-4818-93d4-b456fdc07c90",
+      "name": "When clicking ‘Execute workflow’"
+    }
+  ],
+  "connections": {
+    "AI Research Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Add to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Non-Senior Research": {
+      "main": [
+        [
+          {
+            "node": "Format Research Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Research Data": {
+      "main": [
+        [
+          {
+            "node": "Filter Non-Senior Research",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML→JSON": {
+      "main": [
+        [
+          {
+            "node": "Merge Research Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hacker News RSS": {
+      "main": [
+        [
+          {
+            "node": "XML→JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ArXiv RSS": {
+      "main": [
+        [
+          {
+            "node": "XML→JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Research Data": {
+      "main": [
+        [
+          {
+            "node": "AI Research Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Research Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Hacker News RSS",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ArXiv RSS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "306e92fc1cb3ac32ef51132646da50f1418ea8be2eb1d98f4bda35a9e87465a7"
+  }
+}
